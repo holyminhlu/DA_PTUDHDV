@@ -23,6 +23,7 @@
     "*.{js,css,md}": "prettier --write"
   },
   "dependencies": {
+    "axios": "^1.13.2",
     "vue": "^2.7.16",
     "vue-router": "^3.6.5"
   }

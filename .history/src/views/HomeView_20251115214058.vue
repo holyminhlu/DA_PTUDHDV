@@ -1,4 +1,4 @@
-
+// ...existing code...
 <template>
   <div>
     <HeaderComponent />
@@ -65,6 +65,6 @@ export default {
 .loading { text-align:center; padding:16px; color:#374151; }
 .error { text-align:center; padding:16px; color:#dc2626; }
 </style>
-
+// ...existing code...
 
 
