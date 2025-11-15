@@ -1,0 +1,62 @@
+[
+  {
+    "id": 1,
+    "title": "iPhone 15 Pro Max 256GB",
+    "image": "/img/articles/product-1.jpg",
+    "price": 29990000,
+    "oldPrice": 34990000,
+    "rating": 4.8,
+    "reviews": 234,
+    "discount": 14
+  },
+  {
+    "id": 2,
+    "title": "Samsung Galaxy S24 Ultra 512GB",
+    "image": "/img/articles/product-2.jpg",
+    "price": 27990000,
+    "oldPrice": 31990000,
+    "rating": 4.7,
+    "reviews": 189,
+    "discount": 13
+  },
+  {
+    "id": 3,
+    "title": "AirPods Pro (Gen 2)",
+    "image": "/img/articles/product-3.jpg",
+    "price": 5990000,
+    "oldPrice": 6990000,
+    "rating": 4.6,
+    "reviews": 153,
+    "discount": 14
+  },
+  {
+    "id": 4,
+    "title": "Sạc nhanh không dây MagSafe",
+    "image": "/img/articles/product-4.jpg",
+    "price": 990000,
+    "oldPrice": 1290000,
+    "rating": 4.4,
+    "reviews": 92,
+    "discount": 23
+  },
+  {
+    "id": 5,
+    "title": "Ốp lưng iPhone 15 Pro Max",
+    "image": "/img/articles/product-5.jpg",
+    "price": 450000,
+    "oldPrice": 650000,
+    "rating": 4.5,
+    "reviews": 176,
+    "discount": 31
+  },
+  {
+    "id": 6,
+    "title": "Xiaomi Redmi Note 13 Pro",
+    "image": "/img/articles/product-6.jpg",
+    "price": 7490000,
+    "oldPrice": 8990000,
+    "rating": 4.3,
+    "reviews": 142,
+    "discount": 17
+  }
+]
