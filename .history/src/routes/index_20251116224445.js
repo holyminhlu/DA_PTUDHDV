@@ -12,7 +12,7 @@ export default new Router({
     { path: '/', name: 'home', component: HomeView },
     { path: '/khuyenmai', name: 'khuyenmai', component: KhuyenMai },
     { path: '/dangky', name: 'dangky', component: SignUp },
-    { path: '/dangnhap', name: 'dangnhap', component: SignIn }
+    { path: '/dangnhap', name: 'dangnhap', component: SignUp }
 
   ]
 });
