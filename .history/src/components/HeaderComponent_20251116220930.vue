@@ -26,9 +26,9 @@
           <router-link 
             v-for="item in navItems" 
             :key="item.name"
-            :to="item.path" 
+            :to="item.to || item.path" 
             class="nav-link"
-            :class="{ 'active': $route.path === item.path }"
+            :class="{ 'active': isActive(item) }"
           >
             {{ item.name }}
             <span v-if="item.badge" class="nav-badge">{{ item.badge }}</span>
@@ -109,7 +109,7 @@
               </a>
             </template>
             <template v-else>
-              <a href="/dangnhap" class="dropdown-item" @click="openLoginModal">
+              <a href="#" class="dropdown-item" @click="openLoginModal">
                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
                   <path d="M15 3H19C19.5304 3 20.0391 3.21071 20.4142 3.58579C20.7893 3.96086 21 4.46957 21 5V19C21 19.5304 20.7893 20.0391 20.4142 20.4142C20.0391 20.7893 19.5304 21 19 21H15" 
                         stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
@@ -118,7 +118,7 @@
                 </svg>
                 Đăng nhập
               </a>
-              <a href="/dangky" class="dropdown-item" @click="openRegisterModal">
+              <a href="#" class="dropdown-item" @click="openRegisterModal">
                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
                   <path d="M16 21V19C16 17.9391 15.5786 16.9217 14.8284 16.1716C14.0783 15.4214 13.0609 15 12 15H5C3.93913 15 2.92172 15.4214 2.17157 16.1716C1.42143 16.9217 1 17.9391 1 19V21" 
                         stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
@@ -184,16 +184,17 @@
           <input type="text" placeholder="Tìm kiếm..." class="mobile-search-input">
         </div>
         <div class="mobile-nav-links">
-          <router-link 
-            v-for="item in navItems" 
-            :key="item.name"
-            :to="item.path" 
-            class="mobile-nav-link"
-            @click="closeMobileMenu"
-          >
-            {{ item.name }}
-            <span v-if="item.badge" class="mobile-nav-badge">{{ item.badge }}</span>
-          </router-link>
+            <router-link 
+              v-for="item in navItems" 
+              :key="item.name"
+              :to="item.to || item.path" 
+              class="mobile-nav-link"
+              :class="{ 'active': isActive(item) }"
+              @click="closeMobileMenu"
+            >
+              {{ item.name }}
+              <span v-if="item.badge" class="mobile-nav-badge">{{ item.badge }}</span>
+            </router-link>
         </div>
         <div class="mobile-action-buttons">
           <button class="mobile-action-btn" @click="toggleWishlist">
@@ -234,11 +235,11 @@ export default {
       isLoggedIn: false,
       searchQuery: '',
       navItems: [
-        { name: 'Trang chủ', path: '/' },
-        { name: 'Sản phẩm', path: '/products', badge: 'Hot' },
-        { name: 'Khuyến mãi', path: '/khuyenmai', badge: 'Mới' },
-        { name: 'Giới thiệu', path: '/about' },
-        { name: 'Liên hệ', path: '/contact' }
+        { name: 'Trang chủ', to: { name: 'Home' } },
+        { name: 'Sản phẩm', to: { name: 'Products' }, badge: 'Hot' },
+        { name: 'Khuyến mãi', to: { name: 'Promotions' }, badge: 'Mới' },
+        { name: 'Giới thiệu', to: { name: 'About' } },
+        { name: 'Liên hệ', to: { name: 'Contact' } }
       ],
       cartItems: [
         {
