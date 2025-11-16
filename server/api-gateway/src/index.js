@@ -1,6 +1,7 @@
 const express = require('express');
 const axios = require('axios');
 const cors = require('cors');
+const { randomUUID } = require('crypto');
 require('dotenv').config();
 
 const PORT = process.env.PORT || 3000;
@@ -11,30 +12,56 @@ const app = express();
 app.use(cors());
 app.use(express.json());
 
+// Middleware: add request ID to all requests
+app.use((req, res, next) => {
+  req.id = req.get('x-request-id') || randomUUID().slice(0, 8);
+  res.setHeader('x-request-id', req.id);
+  const start = Date.now();
+  
+  res.on('finish', () => {
+    const duration = Date.now() - start;
+    console.log(`[${req.id}] ${req.method} ${req.path} - ${res.statusCode} - ${duration}ms`);
+  });
+  
+  next();
+});
+
 app.get('/health', (req, res) => res.json({ status: 'gateway ok' }));
 
 // Forward GET /api/products -> product-service /phones
 app.get('/api/products', async (req, res) => {
     try {
-        const resp = await axios.get(`${PRODUCT_SERVICE_URL}/phones`, { params: req.query, timeout: 5000 });
+        const resp = await axios.get(`${PRODUCT_SERVICE_URL}/phones`, { 
+            params: req.query, 
+            timeout: 5000,
+            headers: { 'x-request-id': req.id }
+        });
         res.json(resp.data);
     } catch (err) {
-        console.error('gateway error /api/products', err.message || err);
+        console.error(`[${req.id}] gateway error /api/products:`, err.message || err);
         const status = err.response?.status || 502;
-        res.status(status).json({ error: 'Bad gateway' });
+        res.status(status).json({ error: 'Bad gateway', requestId: req.id });
     }
 });
 
 // Forward GET /api/products/:id -> product-service /phones/:id
 app.get('/api/products/:id', async (req, res) => {
     try {
-        const resp = await axios.get(`${PRODUCT_SERVICE_URL}/phones/${req.params.id}`, { timeout: 5000 });
+        const resp = await axios.get(`${PRODUCT_SERVICE_URL}/phones/${req.params.id}`, { 
+            timeout: 5000,
+            headers: { 'x-request-id': req.id }
+        });
         res.json(resp.data);
     } catch (err) {
-        console.error('gateway error /api/products/:id', err.message || err);
+        console.error(`[${req.id}] gateway error /api/products/:id:`, err.message || err);
         const status = err.response?.status || 502;
-        res.status(status).json({ error: 'Bad gateway' });
+        res.status(status).json({ error: 'Bad gateway', requestId: req.id });
     }
+});
+
+// 404 handler
+app.use((req, res) => {
+  res.status(404).json({ error: 'Not found', path: req.path });
 });
 
 app.listen(PORT, () => {
