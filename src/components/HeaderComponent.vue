@@ -245,13 +245,13 @@ export default {
           id: 1,
           name: 'iPhone 15 Pro Max 256GB',
           price: 28990000,
-          image: '/images/iphone-15-pro-max.png'
+          image: '/img/articles/product-1.jpg'
         },
         {
           id: 2,
           name: 'Ốp lưng iPhone',
           price: 490000,
-          image: '/images/iphone-case.png'
+          image: '/img/articles/product-5.jpg'
         }
       ],
       wishlistCount: 3,

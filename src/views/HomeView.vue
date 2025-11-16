@@ -5,9 +5,13 @@
     <HeroBanner image="/img/articles/hero-sample.jpg" />
 
     <div v-if="loading" class="loading">Đang tải sản phẩm...</div>
-    <div v-if="error" class="error">{{ error }}</div>
+    <div v-if="error" class="error-container">
+      <p class="error">{{ error }}</p>
+      <button class="retry-btn" @click="fetchProducts">Thử lại</button>
+    </div>
 
     <ProductGrid
+      v-if="!loading && !error"
       :products="products"
       @product-click="openProduct"
     />
@@ -42,28 +46,43 @@ export default {
       // ví dụ: chuyển tới trang chi tiết (bạn có thể điều chỉnh route)
       const id = product.id || product._id;
       if (id) this.$router.push({ name: 'ProductDetail', params: { id } });
+    },
+    async fetchProducts() {
+      this.loading = true;
+      this.error = null;
+      try {
+        const base = process.env.VUE_APP_API_URL || 'http://localhost:3000';
+        const { data } = await axios.get(`${base}/api/products`);
+        this.products = Array.isArray(data) ? data.map(p => ({ ...p, id: p._id || p.id })) : [];
+      } catch (e) {
+        this.error = e.response?.data?.error || e.message || 'Lỗi khi tải sản phẩm';
+        console.error('HomeView fetch error', e);
+      } finally {
+        this.loading = false;
+      }
     }
   },
   async mounted() {
-    this.loading = true;
-    this.error = null;
-    try {
-      const base = process.env.VUE_APP_API_URL || 'http://localhost:3000';
-      const { data } = await axios.get(`${base}/api/products`);
-      this.products = Array.isArray(data) ? data.map(p => ({ ...p, id: p._id || p.id })) : [];
-    } catch (e) {
-      this.error = e.response?.data?.error || e.message || 'Lỗi khi tải sản phẩm';
-      console.error('HomeView fetch error', e);
-    } finally {
-      this.loading = false;
-    }
+    await this.fetchProducts();
   }
 };
 </script>
 
 <style scoped>
 .loading { text-align:center; padding:16px; color:#374151; }
-.error { text-align:center; padding:16px; color:#dc2626; }
+.error-container { text-align:center; padding:32px; }
+.error { color:#dc2626; margin-bottom:16px; }
+.retry-btn { 
+  padding:10px 20px; 
+  background:#3b82f6; 
+  color:white; 
+  border:none; 
+  border-radius:8px; 
+  cursor:pointer; 
+  font-weight:600;
+  transition: all 0.3s ease;
+}
+.retry-btn:hover { background:#1d4ed8; transform:translateY(-1px); }
 </style>
 
 

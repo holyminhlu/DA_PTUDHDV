@@ -8,6 +8,7 @@
           :alt="product.title"
           class="product-image"
           loading="lazy"
+          @error="onImageError"
         />
         
         <!-- Discount Badge -->
@@ -104,6 +105,13 @@ export default {
     formatPrice(v) {
       if (!v) return '';
       return v.toString().replace(/\B(?=(\d{3})+(?!\d))/g, '.') + '₫';
+    },
+    
+    onImageError(event) {
+      // Show placeholder when image fails to load
+      event.target.style.backgroundColor = '#f3f4f6';
+      event.target.style.opacity = '0.7';
+      event.target.setAttribute('alt', 'Ảnh không khả dụng');
     },
     
     handleCardClick() {

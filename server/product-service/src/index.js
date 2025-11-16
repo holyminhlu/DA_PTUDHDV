@@ -1,6 +1,7 @@
 const express = require('express');
 const mongoose = require('mongoose');
 const cors = require('cors');
+const { randomUUID } = require('crypto');
 require('dotenv').config();
 
 const MONGO_URI = process.env.MONGO_URI || 'mongodb://localhost:27017/TechStore';
@@ -9,6 +10,19 @@ const PORT = process.env.PORT || 3001;
 const app = express();
 app.use(cors());
 app.use(express.json());
+
+// Middleware: request logging with request ID
+app.use((req, res, next) => {
+  req.id = randomUUID().slice(0, 8);
+  const start = Date.now();
+  
+  res.on('finish', () => {
+    const duration = Date.now() - start;
+    console.log(`[${req.id}] ${req.method} ${req.path} - ${res.statusCode} - ${duration}ms`);
+  });
+  
+  next();
+});
 
 // Phone model using the existing collection 'Phone' and flexible schema
 const phoneSchema = new mongoose.Schema({}, { strict: false, collection: 'Phone' });
@@ -26,7 +40,7 @@ mongoose.connect(MONGO_URI, {
 });
 
 // Routes
-app.get('/health', (req, res) => res.json({ status: 'ok' }));
+app.get('/health', (req, res) => res.json({ status: 'ok', service: 'product-service' }));
 
 // GET /phones -> list all phones (paginate if needed)
 app.get('/phones', async (req, res) => {
@@ -43,15 +57,20 @@ app.get('/phones', async (req, res) => {
 app.get('/phones/:id', async (req, res) => {
     const { id } = req.params;
     const mongooseId = mongoose.Types.ObjectId;
-    if (!mongooseId.isValid(id)) return res.status(400).json({ error: 'Invalid id' });
+    if (!mongooseId.isValid(id)) return res.status(400).json({ error: 'Invalid id', requestId: req.id });
     try {
         const phone = await Phone.findById(id).lean();
-        if (!phone) return res.status(404).json({ error: 'Not found' });
+        if (!phone) return res.status(404).json({ error: 'Not found', requestId: req.id });
         res.json(phone);
     } catch (err) {
-        console.error(err);
-        res.status(500).json({ error: 'Internal server error' });
+        console.error(`[${req.id}] Error fetching phone ${id}:`, err.message);
+        res.status(500).json({ error: 'Internal server error', requestId: req.id });
     }
+});
+
+// 404 handler
+app.use((req, res) => {
+  res.status(404).json({ error: 'Not found', path: req.path });
 });
 
 app.listen(PORT, () => {
