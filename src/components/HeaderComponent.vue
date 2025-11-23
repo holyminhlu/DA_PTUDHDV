@@ -327,9 +327,25 @@ export default {
   z-index: 1000;
   transition: all 0.3s ease;
 
-  height: 80px;          /* giảm chiều cao header */
-  padding: 10px 20px;    /* hoặc chỉnh padding cho gọn hơn */
-  box-sizing: border-box; /* đảm bảo padding nằm trong height */
+  height: 80px;
+  padding: 10px 20px;
+  box-sizing: border-box;
+}
+
+/* Đảm bảo tất cả SVG và icon trong header hiển thị */
+.header svg {
+  display: block !important;
+  visibility: visible !important;
+  opacity: 1 !important;
+}
+
+.header .search-icon,
+.header .action-btn svg,
+.header .logo svg {
+  display: block !important;
+  visibility: visible !important;
+  width: auto !important;
+  height: auto !important;
 }
 
 
@@ -432,6 +448,13 @@ export default {
 
 .search-box {
   position: relative;
+  display: block;
+  width: 100%;
+}
+
+.search-box svg {
+  display: block !important;
+  visibility: visible !important;
 }
 
 .search-icon {
@@ -440,6 +463,11 @@ export default {
   top: 50%;
   transform: translateY(-50%);
   color: #6B7280;
+  display: block !important;
+  width: 16px !important;
+  height: 16px !important;
+  pointer-events: none;
+  z-index: 1;
 }
 
 .search-input {
@@ -477,12 +505,19 @@ export default {
   border: none;
   background: none;
   border-radius: 10px;
-  display: flex;
+  display: flex !important;
   align-items: center;
   justify-content: center;
   color: #374151;
   cursor: pointer;
   transition: all 0.3s ease;
+}
+
+.action-btn svg {
+  display: block !important;
+  width: 18px !important;
+  height: 18px !important;
+  flex-shrink: 0;
 }
 
 .action-btn:hover {
