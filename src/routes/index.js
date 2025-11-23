@@ -4,6 +4,8 @@ import HomeView from '../views/HomeView.vue';
 import KhuyenMai from '../views/KhuyenMai.vue';
 import SignUp from '../views/SignUp.vue';
 import SignIn from '../views/SignIn.vue';
+import About from '../views/About.vue';
+import Contact from '../views/Contact.vue';
 Vue.use(Router);
 
 export default new Router({
@@ -12,7 +14,9 @@ export default new Router({
     { path: '/', name: 'home', component: HomeView },
     { path: '/khuyenmai', name: 'khuyenmai', component: KhuyenMai },
     { path: '/dangky', name: 'dangky', component: SignUp },
-    { path: '/dangnhap', name: 'dangnhap', component: SignIn }
+    { path: '/dangnhap', name: 'dangnhap', component: SignIn },
+    { path: '/about', name: 'about', component: About },
+    { path: '/contact', name: 'contact', component: Contact }
 
   ]
 });

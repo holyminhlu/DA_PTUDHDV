@@ -19,7 +19,12 @@
                  class="social-link"
                  target="_blank"
                  :aria-label="social.name">
-                <component :is="social.icon" />
+                <img v-if="social.image && !social.hasImageError" 
+                     :src="social.image" 
+                     :alt="social.name" 
+                     class="social-image"
+                     @error="onImageError(social)" />
+                <component v-else :is="social.icon" />
               </a>
             </div>
           </div>
@@ -98,11 +103,11 @@ const FacebookIcon = {
 };
 
 const ZaloIcon = {
-  template: '<svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-1 16c-3.31 0-6-2.69-6-6s2.69-6 6-6 6 2.69 6 6-2.69 6-6 6z"/><path d="M12 6c-2.21 0-4 1.79-4 4s1.79 4 4 4 4-1.79 4-4-1.79-4-4-4z"/></svg>'
+  template: '<svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><circle cx="12" cy="12" r="10" fill="none" stroke="currentColor" stroke-width="1.5"/><path d="M8 8l8 0M8 16l8 0M8 8l8 8" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" fill="none"/></svg>'
 };
 
-const YoutubeIcon = {
-  template: '<svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d="M23.498 6.186a3.016 3.016 0 0 0-2.122-2.136C19.505 3.545 12 3.545 12 3.545s-7.505 0-9.377.505A3.017 3.017 0 0 0 .502 6.186C0 8.07 0 12 0 12s0 3.93.502 5.814a3.016 3.016 0 0 0 2.122 2.136c1.871.505 9.376.505 9.376.505s7.505 0 9.377-.505a3.015 3.015 0 0 0 2.122-2.136C24 15.93 24 12 24 12s0-3.93-.502-5.814zM9.545 15.568V8.432L15.818 12l-6.273 3.568z"/></svg>'
+const TikTokIcon = {
+  template: '<svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d="M19.59 6.69a4.83 4.83 0 0 1-3.77-4.25V2h-3.45v13.67a2.89 2.89 0 0 1-5.2 1.74 2.89 2.89 0 0 1 2.31-4.64 2.93 2.93 0 0 1 .88.13V9.4a6.84 6.84 0 0 0-1-.05A6.33 6.33 0 0 0 5 20.1a6.34 6.34 0 0 0 10.86-4.43v-7a8.16 8.16 0 0 0 4.77 1.52v-3.4a4.85 4.85 0 0 1-1-.1zm.01-3.05v3.22c-.38 0-.76-.04-1.13-.12v4.62a8.2 8.2 0 0 1-1.13.08c-.19 0-.38 0-.57-.02v-8.88h1.83zm-5.13 0v13.12a2.88 2.88 0 1 1-2.88-2.88c.19 0 .37.03.55.08v-3.96c-.18-.03-.36-.05-.55-.05a6.34 6.34 0 0 0 0 12.68c3.49 0 6.33-2.84 6.33-6.33V3.64h-3.45z"/></svg>'
 };
 
 const LocationIcon = {
@@ -122,7 +127,7 @@ export default {
   components: {
     FacebookIcon,
     ZaloIcon,
-    YoutubeIcon,
+    TikTokIcon,
     LocationIcon,
     PhoneIcon,
     EmailIcon
@@ -130,9 +135,27 @@ export default {
   data() {
     return {
       socialLinks: [
-        { name: 'Facebook', url: '#', icon: 'FacebookIcon' },
-        { name: 'Zalo', url: '#', icon: 'ZaloIcon' },
-        { name: 'YouTube', url: '#', icon: 'YoutubeIcon' }
+        { 
+          name: 'Facebook', 
+          url: 'https://facebook.com/techstore.fake', 
+          icon: 'FacebookIcon',
+          image: '/img/articles/Review/fb.png',
+          hasImageError: false
+        },
+        { 
+          name: 'TikTok', 
+          url: 'https://tiktok.com/@techstore_official', 
+          icon: 'TikTokIcon',
+          image: '/img/articles/Review/tt.png',
+          hasImageError: false
+        },
+        { 
+          name: 'Zalo', 
+          url: 'https://zalo.me/84912345678', 
+          icon: 'ZaloIcon',
+          image: '/img/articles/Review/zl.webp',
+          hasImageError: false
+        }
       ],
       quickLinks: [
         { name: 'Sản phẩm', url: '#' },
@@ -160,6 +183,11 @@ export default {
         { name: 'Chính sách bảo mật', url: '#' },
         { name: 'Cookies', url: '#' }
       ]
+    }
+  },
+  methods: {
+    onImageError(social) {
+      social.hasImageError = true
     }
   }
 }
@@ -234,6 +262,20 @@ export default {
   background: #3b82f6;
   color: white;
   transform: translateY(-2px);
+}
+
+.social-image {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  border-radius: 50%;
+  display: block;
+}
+
+.social-link svg {
+  width: 20px;
+  height: 20px;
+  display: block;
 }
 
 /* Section Titles */
