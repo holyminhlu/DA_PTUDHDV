@@ -59,14 +59,7 @@ app.get('/api/products/:id', async (req, res) => {
     }
 });
 
-// 404 handler
-app.use((req, res) => {
-  res.status(404).json({ error: 'Not found', path: req.path });
-});
 
-app.listen(PORT, () => {
-    console.log(`api-gateway listening on port ${PORT}, product-service -> ${PRODUCT_SERVICE_URL}`);
-});
 
 // Forward auth register/login to auth-service
 app.post('/api/auth/register', async (req, res) => {
@@ -89,4 +82,13 @@ app.post('/api/auth/login', async (req, res) => {
         const status = err.response?.status || 502;
         return res.status(status).json(err.response?.data || { error: 'Bad gateway' });
     }
+});
+
+// 404 handler
+app.use((req, res) => {
+  res.status(404).json({ error: 'Not found', path: req.path });
+});
+
+app.listen(PORT, () => {
+    console.log(`api-gateway listening on port ${PORT}, product-service -> ${PRODUCT_SERVICE_URL}`);
 });

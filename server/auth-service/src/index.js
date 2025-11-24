@@ -32,6 +32,25 @@ app.post('/api/auth/register', async (req, res) => {
       return res.status(400).json({ error: 'name, email and password are required' });
     }
 
+    // field-level validation
+    const fieldErrors = {};
+    try {
+      // name should contain only letters and spaces (allow unicode letters)
+      const invalidName = /[^\p{L}\s]/u.test(name.trim());
+      if (invalidName) fieldErrors.name = 'Chứa ký tự đặc biệt';
+    } catch (e) {
+      // fallback: basic ascii check if unicode property escapes are not supported
+      if (/[^A-Za-z\s]/.test(name.trim())) fieldErrors.name = 'Chứa ký tự đặc biệt';
+    }
+
+    if (!password || password.length < 8) {
+      fieldErrors.password = 'Mật khẩu phải tối thiểu 8 ký tự';
+    }
+
+    if (Object.keys(fieldErrors).length) {
+      return res.status(400).json({ errors: fieldErrors });
+    }
+
     // simple email format check
     const emailRe = /^(([^<>()\[\]\\.,;:\s@\"]+(\.[^<>()\[\]\\.,;:\s@\"]+)*)|(\".+\"))@(([^<>()[\]\\.,;:\s@\"]+\.)+[^<>()[\]\\.,;:\s@\"]{2,})$/i;
     if (!emailRe.test(email)) return res.status(400).json({ error: 'Invalid email' });
@@ -58,13 +77,13 @@ app.post('/api/auth/register', async (req, res) => {
 app.post('/api/auth/login', async (req, res) => {
   try {
     const { email, password } = req.body || {};
-    if (!email || !password) return res.status(400).json({ error: 'email and password required' });
+    if (!email || !password) return res.status(400).json({ error: 'Email và mật khẩu là bắt buộc' });
 
     const user = await User.findOne({ email: email.toLowerCase().trim() });
-    if (!user) return res.status(401).json({ error: 'Invalid credentials' });
+    if (!user) return res.status(401).json({ error: 'Email đăng nhập không hợp lệ' });
 
     const match = await bcrypt.compare(password, user.password);
-    if (!match) return res.status(401).json({ error: 'Invalid credentials' });
+    if (!match) return res.status(401).json({ error: 'Mật khẩu không hợp lệ' });
 
     // For now return minimal user data (no JWT)
     return res.json({ message: 'Login success', user: { id: user._id, name: user.name, email: user.email } });

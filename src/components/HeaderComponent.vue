@@ -54,28 +54,57 @@
         </div>
       </div>
 
-      <!-- Action Buttons -->
+      <!-- Action Buttons: only Cart then User (wishlist removed) -->
       <div class="action-buttons">
-        <!-- Wishlist -->
-        <button class="action-btn" @click="toggleWishlist" :aria-label="'Yêu thích'">
-          <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
-            <path d="M12 21.35L10.55 20.03C5.4 15.36 2 12.28 2 8.5C2 5.42 4.42 3 7.5 3C9.24 3 10.91 3.81 12 5.09C13.09 3.81 14.76 3 16.5 3C19.58 3 22 5.42 22 8.5C22 12.28 18.6 15.36 13.45 20.04L12 21.35Z" 
-                  :fill="isWishlistActive ? '#ef4444' : 'none'" 
-                  :stroke="isWishlistActive ? '#ef4444' : 'currentColor'" 
-                  stroke-width="2"/>
-          </svg>
-          <span v-if="wishlistCount > 0" class="action-badge">{{ wishlistCount }}</span>
-        </button>
+        <!-- Shopping Cart -->
+        <div class="cart-dropdown">
+          <button class="action-btn" @click="toggleCartDropdown" :aria-label="'Giỏ hàng'">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
+              <path d="M3 3H5L5.4 5M7 13H17L21 5H5.4M7 13L5.4 5M7 13L4.7 15.3C4.3 15.7 4.6 16.4 5.2 16.4H17M17 13V16.4M9 19C9 19.6 8.6 20 8 20C7.4 20 7 19.6 7 19C7 18.4 7.4 18 8 18C8.6 18 9 18.4 9 19ZM17 19C17 19.6 16.6 20 16 20C15.4 20 15 19.6 15 19C15 18.4 15.4 18 16 18C16.6 18 17 18.4 17 19Z" 
+                    stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+            <span v-if="cartCount > 0" class="action-badge">{{ cartCount }}</span>
+          </button>
+          <div v-if="isCartDropdownOpen" class="dropdown-menu cart-menu">
+            <div class="cart-header">
+              <h4>Giỏ hàng ({{ cartCount }})</h4>
+            </div>
+            <div class="cart-items">
+              <div v-for="item in cartItems" :key="item.id" class="cart-item">
+                <img :src="item.image" :alt="item.name" class="cart-item-image">
+                <div class="cart-item-details">
+                  <p class="cart-item-name">{{ item.name }}</p>
+                  <p class="cart-item-price">{{ formatPrice(item.price) }}</p>
+                </div>
+                <button class="remove-item-btn" @click="removeFromCart(item.id)">
+                  ×
+                </button>
+              </div>
+            </div>
+            <div class="cart-footer">
+              <div class="cart-total">
+                <span>Tổng tiền:</span>
+                <span class="total-price">{{ formatPrice(cartTotal) }}</span>
+              </div>
+              <button class="checkout-btn">Thanh toán</button>
+            </div>
+          </div>
+        </div>
 
         <!-- User Account -->
         <div class="user-dropdown">
-          <button class="action-btn" @click="toggleUserDropdown" :aria-label="'Tài khoản'">
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
-              <path d="M20 21V19C20 17.9391 19.5786 16.9217 18.8284 16.1716C18.0783 15.4214 17.0609 15 16 15H8C6.93913 15 5.92172 15.4214 5.17157 16.1716C4.42143 16.9217 4 17.9391 4 19V21" 
-                    stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-              <path d="M12 11C14.2091 11 16 9.20914 16 7C16 4.79086 14.2091 3 12 3C9.79086 3 8 4.79086 8 7C8 9.20914 9.79086 11 12 11Z" 
-                    stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-            </svg>
+          <button class="action-btn user-btn" @click="toggleUserDropdown" :aria-label="'Tài khoản'">
+            <template v-if="isLoggedIn && userInitials">
+              <span class="user-avatar">{{ userInitials }}</span>
+            </template>
+            <template v-else>
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
+                <path d="M20 21V19C20 17.9391 19.5786 16.9217 18.8284 16.1716C18.0783 15.4214 17.0609 15 16 15H8C6.93913 15 5.92172 15.4214 5.17157 16.1716C4.42143 16.9217 4 17.9391 4 19V21" 
+                      stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                <path d="M12 11C14.2091 11 16 9.20914 16 7C16 4.79086 14.2091 3 12 3C9.79086 3 8 4.79086 8 7C8 9.20914 9.79086 11 12 11Z" 
+                      stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+              </svg>
+            </template>
           </button>
           <div v-if="isUserDropdownOpen" class="dropdown-menu">
             <template v-if="isLoggedIn">
@@ -132,41 +161,6 @@
             </template>
           </div>
         </div>
-
-        <!-- Shopping Cart -->
-        <div class="cart-dropdown">
-          <button class="action-btn" @click="toggleCartDropdown" :aria-label="'Giỏ hàng'">
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
-              <path d="M3 3H5L5.4 5M7 13H17L21 5H5.4M7 13L5.4 5M7 13L4.7 15.3C4.3 15.7 4.6 16.4 5.2 16.4H17M17 13V16.4M9 19C9 19.6 8.6 20 8 20C7.4 20 7 19.6 7 19C7 18.4 7.4 18 8 18C8.6 18 9 18.4 9 19ZM17 19C17 19.6 16.6 20 16 20C15.4 20 15 19.6 15 19C15 18.4 15.4 18 16 18C16.6 18 17 18.4 17 19Z" 
-                    stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-            </svg>
-            <span v-if="cartCount > 0" class="action-badge">{{ cartCount }}</span>
-          </button>
-          <div v-if="isCartDropdownOpen" class="dropdown-menu cart-menu">
-            <div class="cart-header">
-              <h4>Giỏ hàng ({{ cartCount }})</h4>
-            </div>
-            <div class="cart-items">
-              <div v-for="item in cartItems" :key="item.id" class="cart-item">
-                <img :src="item.image" :alt="item.name" class="cart-item-image">
-                <div class="cart-item-details">
-                  <p class="cart-item-name">{{ item.name }}</p>
-                  <p class="cart-item-price">{{ formatPrice(item.price) }}</p>
-                </div>
-                <button class="remove-item-btn" @click="removeFromCart(item.id)">
-                  ×
-                </button>
-              </div>
-            </div>
-            <div class="cart-footer">
-              <div class="cart-total">
-                <span>Tổng tiền:</span>
-                <span class="total-price">{{ formatPrice(cartTotal) }}</span>
-              </div>
-              <button class="checkout-btn">Thanh toán</button>
-            </div>
-          </div>
-        </div>
       </div>
 
       <!-- Mobile Menu Button -->
@@ -196,14 +190,12 @@
           </router-link>
         </div>
         <div class="mobile-action-buttons">
-          <button class="mobile-action-btn" @click="toggleWishlist">
+          <button class="mobile-action-btn" @click="toggleCartDropdown">
             <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
-              <path d="M12 21.35L10.55 20.03C5.4 15.36 2 12.28 2 8.5C2 5.42 4.42 3 7.5 3C9.24 3 10.91 3.81 12 5.09C13.09 3.81 14.76 3 16.5 3C19.58 3 22 5.42 22 8.5C22 12.28 18.6 15.36 13.45 20.04L12 21.35Z" 
-                    :fill="isWishlistActive ? '#ef4444' : 'none'" 
-                    :stroke="isWishlistActive ? '#ef4444' : 'currentColor'" 
-                    stroke-width="2"/>
+              <path d="M3 3H5L5.4 5M7 13H17L21 5H5.4M7 13L5.4 5M7 13L4.7 15.3C4.3 15.7 4.6 16.4 5.2 16.4H17M17 13V16.4M9 19C9 19.6 8.6 20 8 20C7.4 20 7 19.6 7 19C7 18.4 7.4 18 8 18C8.6 18 9 18.4 9 19ZM17 19C17 19.6 16.6 20 16 20C15.4 20 15 19.6 15 19C15 18.4 15.4 18 16 18C16.6 18 17 18.4 17 19Z" 
+                    stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
             </svg>
-            Yêu thích
+            Giỏ hàng
           </button>
           <button class="mobile-action-btn" @click="openLoginModal">
             <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
@@ -232,6 +224,7 @@ export default {
       isCartDropdownOpen: false,
       isWishlistActive: false,
       isLoggedIn: false,
+      user: null,
       searchQuery: '',
       navItems: [
         { name: 'Trang chủ', path: '/' },
@@ -262,12 +255,42 @@ export default {
     cartTotal() {
       return this.cartItems.reduce((total, item) => total + item.price, 0);
     }
+    ,
+    userInitials() {
+      const name = (this.user && (this.user.name || this.user.fullname || this.user.displayName || this.user.username)) || '';
+      if (!name) return null;
+      // remove extra spaces
+      const parts = name.trim().split(/\s+/);
+      let initials = '';
+      if (parts.length >= 2) {
+        initials = parts[0][0] + parts[1][0];
+      } else if (parts.length === 1) {
+        initials = parts[0].slice(0, 2);
+      }
+      // normalize (remove diacritics) and uppercase
+      return initials.normalize ? initials.normalize('NFD').replace(/[\u0300-\u036f]/g, '').toUpperCase() : initials.toUpperCase();
+    }
   },
   mounted() {
     window.addEventListener('scroll', this.handleScroll);
+    // Initialise user state from storage
+    try {
+      const raw = localStorage.getItem('techstore_user') || sessionStorage.getItem('techstore_user');
+      if (raw) {
+        this.user = JSON.parse(raw);
+        this.isLoggedIn = true;
+      }
+    } catch (e) {
+      console.warn('Failed to parse stored user', e);
+    }
+    // react to storage changes and custom event so header updates after sign-in
+    window.addEventListener('storage', this.handleStorageChange);
+    window.addEventListener('techstore:user-updated', this.handleUserUpdated);
   },
   beforeUnmount() {
     window.removeEventListener('scroll', this.handleScroll);
+    window.removeEventListener('storage', this.handleStorageChange);
+    window.removeEventListener('techstore:user-updated', this.handleUserUpdated);
   },
   methods: {
     handleScroll() {
@@ -307,13 +330,83 @@ export default {
       this.isUserDropdownOpen = false;
       this.closeMobileMenu();
     },
+    handleStorageChange(e) {
+      // reload user from storage when changed in another tab
+      try {
+        const raw = localStorage.getItem('techstore_user') || sessionStorage.getItem('techstore_user');
+        if (raw) {
+          this.user = JSON.parse(raw);
+          this.isLoggedIn = true;
+        } else {
+          this.user = null;
+          this.isLoggedIn = false;
+        }
+      } catch (err) {
+        console.warn('Failed to parse stored user', err);
+      }
+    },
+    handleUserUpdated() {
+      // custom event fired after login in same tab
+      try {
+        const raw = localStorage.getItem('techstore_user') || sessionStorage.getItem('techstore_user');
+        if (raw) {
+          this.user = JSON.parse(raw);
+          this.isLoggedIn = true;
+        }
+      } catch (err) {
+        console.warn('Failed to parse stored user', err);
+      }
+    },
     logout() {
       this.isLoggedIn = false;
+      this.user = null;
       this.isUserDropdownOpen = false;
+      try {
+        localStorage.removeItem('techstore_user');
+        sessionStorage.removeItem('techstore_user');
+      } catch (e) {
+        console.warn('Failed to clear storage', e);
+      }
     }
   }
 }
 </script>
+
+<style scoped>
+.user-avatar {
+  width: 38px;
+  height: 38px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #3B82F6, #1D4ED8);
+  color: #fff;
+  font-weight: 700;
+  font-size: 14px;
+}
+</style>
+<style scoped>
+/* Make the user button circular and remove internal padding so avatar displays as a true circle */
+.action-btn.user-btn {
+  border-radius: 50%;
+  padding: 0;
+  width: 38px;
+  height: 38px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+}
+
+/* Slightly smaller inner avatar so there's a small spacing */
+.action-btn.user-btn .user-avatar {
+  width: 34px;
+  height: 34px;
+  font-size: 13px;
+}
+</style>
+</style>
 
 <style scoped>
 .header {

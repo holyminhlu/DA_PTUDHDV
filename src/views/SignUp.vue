@@ -131,7 +131,26 @@ export default {
 
         if (!resp.ok) {
           const body = await resp.json().catch(() => ({}));
-          this.errorMessage = body.error || body.message || 'Đăng ký thất bại.';
+          // clear previous field errors
+          this.errors = {};
+
+          // If API returns structured field errors, map them to local form fields
+          // Example API: { "name": "Chứa ký tự đặc biệt", "password": "Mật khẩu phải tối thiểu 8 ký tự" }
+          if (body.errors && typeof body.errors === 'object') {
+            for (const [key, val] of Object.entries(body.errors)) {
+              if (key === 'name') this.errors.fullName = val;
+              else if (key === 'password') this.errors.password = val;
+              else if (key === 'email') this.errors.email = val;
+              else this.errors[key] = val;
+            }
+            this.errorMessage = body.message || 'Vui lòng kiểm tra các trường.';
+          } else {
+            // Some APIs may return field errors at top-level
+            if (body.name) this.errors.fullName = body.name;
+            if (body.password) this.errors.password = body.password;
+            if (body.email) this.errors.email = body.email;
+            this.errorMessage = body.error || body.message || Object.values(this.errors)[0] || 'Đăng ký thất bại.';
+          }
         } else {
           const body = await resp.json().catch(() => ({}));
           this.successMessage = body.message || 'Đăng ký thành công! Vui lòng kiểm tra email để kích hoạt (nếu có).';
