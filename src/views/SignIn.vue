@@ -107,6 +107,8 @@ export default {
           try {
             if (this.form.remember) localStorage.setItem('techstore_user', JSON.stringify(user));
             else sessionStorage.setItem('techstore_user', JSON.stringify(user));
+            // notify header (same-tab) that user updated
+            try { window.dispatchEvent(new Event('techstore:user-updated')); } catch (e) {}
           } catch (e) {
             console.warn('Storage failed', e);
           }
