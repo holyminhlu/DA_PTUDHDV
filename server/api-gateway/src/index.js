@@ -84,6 +84,50 @@ app.post('/api/auth/login', async (req, res) => {
     }
 });
 
+// Forward GET /api/auth/profile to auth-service
+app.get('/api/auth/profile', async (req, res) => {
+    try {
+        // Forward the Authorization header
+        const headers = {};
+        if (req.headers.authorization) {
+            headers.authorization = req.headers.authorization;
+        }
+        headers['x-request-id'] = req.id;
+
+        const resp = await axios.get(`${AUTH_SERVICE_URL}/api/auth/profile`, { 
+            headers,
+            timeout: 5000 
+        });
+        return res.status(resp.status).json(resp.data);
+    } catch (err) {
+        console.error('gateway error /api/auth/profile', err.message || err);
+        const status = err.response?.status || 502;
+        return res.status(status).json(err.response?.data || { error: 'Bad gateway' });
+    }
+});
+
+// Forward PUT /api/auth/profile to auth-service
+app.put('/api/auth/profile', async (req, res) => {
+    try {
+        // Forward the Authorization header
+        const headers = { 'Content-Type': 'application/json' };
+        if (req.headers.authorization) {
+            headers.authorization = req.headers.authorization;
+        }
+        headers['x-request-id'] = req.id;
+
+        const resp = await axios.put(`${AUTH_SERVICE_URL}/api/auth/profile`, req.body, { 
+            headers,
+            timeout: 5000 
+        });
+        return res.status(resp.status).json(resp.data);
+    } catch (err) {
+        console.error('gateway error PUT /api/auth/profile', err.message || err);
+        const status = err.response?.status || 502;
+        return res.status(status).json(err.response?.data || { error: 'Bad gateway' });
+    }
+});
+
 // 404 handler
 app.use((req, res) => {
   res.status(404).json({ error: 'Not found', path: req.path });
