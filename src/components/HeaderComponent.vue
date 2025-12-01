@@ -95,7 +95,7 @@
           </button>
           <div v-if="isUserDropdownOpen" class="dropdown-menu">
             <template v-if="isLoggedIn">
-              <a href="#" class="dropdown-item">
+              <router-link to="/profile" class="dropdown-item" @click.native="closeDropdowns">
                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
                   <path d="M20 21V19C20 17.9391 19.5786 16.9217 18.8284 16.1716C18.0783 15.4214 17.0609 15 16 15H8C6.93913 15 5.92172 15.4214 5.17157 16.1716C4.42143 16.9217 4 17.9391 4 19V21" 
                         stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
@@ -103,7 +103,7 @@
                         stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
                 </svg>
                 Tài khoản
-              </a>
+              </router-link>
               <a href="#" class="dropdown-item">
                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
                   <path d="M16 11C16 13.2091 14.2091 15 12 15C9.79086 15 8 13.2091 8 11C8 8.79086 9.79086 7 12 7C14.2091 7 16 8.79086 16 11Z" 
@@ -354,9 +354,17 @@ export default {
       try {
         localStorage.removeItem('techstore_user');
         sessionStorage.removeItem('techstore_user');
+        localStorage.removeItem('techstore_token');
+        sessionStorage.removeItem('techstore_token');
+        // Dispatch event để cập nhật các components khác
+        try { window.dispatchEvent(new Event('techstore:user-updated')); } catch (e) {}
       } catch (e) {
         console.warn('Failed to clear storage', e);
       }
+    },
+    closeDropdowns() {
+      this.isUserDropdownOpen = false;
+      this.isCartDropdownOpen = false;
     }
   }
 }

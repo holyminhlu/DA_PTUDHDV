@@ -100,13 +100,19 @@ export default {
         if (!resp.ok) {
           this.errorMessage = body.error || body.message || 'Đăng nhập thất bại.';
         } else {
-          // success
-          // assume backend returns user info and optionally token
+          // success - backend returns token and user info
           const user = body.user || body;
-          // store user in localStorage (or use a store)
+          const token = body.token;
+          
+          // store user and token in localStorage (or use a store)
           try {
-            if (this.form.remember) localStorage.setItem('techstore_user', JSON.stringify(user));
-            else sessionStorage.setItem('techstore_user', JSON.stringify(user));
+            if (this.form.remember) {
+              localStorage.setItem('techstore_user', JSON.stringify(user));
+              if (token) localStorage.setItem('techstore_token', token);
+            } else {
+              sessionStorage.setItem('techstore_user', JSON.stringify(user));
+              if (token) sessionStorage.setItem('techstore_token', token);
+            }
             // notify header (same-tab) that user updated
             try { window.dispatchEvent(new Event('techstore:user-updated')); } catch (e) {}
           } catch (e) {
