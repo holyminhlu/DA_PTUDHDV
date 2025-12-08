@@ -57,30 +57,117 @@ app.get('/health', (req, res) => res.json({ status: 'gateway ok' }));
 
 /**
  * @swagger
+ * /api/products/featured:
+ *   get:
+ *     tags: [Products]
+ *     summary: Lấy danh sách sản phẩm nổi bật
+ *     description: Trả về các sản phẩm nổi bật (rating cao >= 4.5, discount >= 10%, hoặc được đánh dấu featured)
+ *     parameters:
+ *       - in: query
+ *         name: limit
+ *         schema:
+ *           type: integer
+ *           default: 6
+ *         description: Số lượng sản phẩm trả về (mặc định 6)
+ *     responses:
+ *       200:
+ *         description: Lấy danh sách thành công
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 results:
+ *                   type: array
+ *                   items:
+ *                     $ref: '#/components/schemas/Product'
+ *                 count:
+ *                   type: integer
+ *                 type:
+ *                   type: string
+ *                   example: featured
+ *       502:
+ *         description: Lỗi kết nối đến Product Service
+ */
+app.get('/api/products/featured', async (req, res) => {
+    try {
+        const resp = await axios.get(`${PRODUCT_SERVICE_URL}/phones/featured`, {
+            params: req.query,
+            timeout: 5000,
+            headers: { 'x-request-id': req.id }
+        });
+        res.json(resp.data);
+    } catch (err) {
+        console.error(`[${req.id}] gateway error /api/products/featured:`, err.message || err);
+        const status = err.response?.status || 502;
+        res.status(status).json({ error: 'Bad gateway', requestId: req.id });
+    }
+});
+
+/**
+ * @swagger
  * /api/products/search:
  *   get:
  *     tags: [Products]
- *     summary: Tìm kiếm sản phẩm
- *     description: Tìm kiếm điện thoại theo các tiêu chí
+ *     summary: Tìm kiếm sản phẩm theo tên
+ *     description: Tìm kiếm điện thoại theo từ khóa, category, khoảng giá
  *     parameters:
  *       - in: query
  *         name: q
  *         schema:
  *           type: string
- *         description: Từ khóa tìm kiếm
+ *         description: Từ khóa tìm kiếm (tên, mô tả, brand, category)
+ *         example: iPhone
+ *       - in: query
+ *         name: category
+ *         schema:
+ *           type: string
+ *         description: Lọc theo danh mục
+ *         example: iPhone
+ *       - in: query
+ *         name: minPrice
+ *         schema:
+ *           type: number
+ *         description: Giá tối thiểu
+ *         example: 10000000
+ *       - in: query
+ *         name: maxPrice
+ *         schema:
+ *           type: number
+ *         description: Giá tối đa
+ *         example: 30000000
+ *       - in: query
+ *         name: sort
+ *         schema:
+ *           type: string
+ *           enum: [relevance, price-asc, price-desc, name, rating]
+ *         description: Sắp xếp kết quả
+ *         example: price-asc
+ *       - in: query
+ *         name: limit
+ *         schema:
+ *           type: integer
+ *           default: 50
+ *         description: Số lượng kết quả tối đa
  *     responses:
  *       200:
  *         description: Tìm kiếm thành công
  *         content:
  *           application/json:
  *             schema:
- *               type: array
- *               items:
- *                 $ref: '#/components/schemas/Product'
+ *               type: object
+ *               properties:
+ *                 results:
+ *                   type: array
+ *                   items:
+ *                     $ref: '#/components/schemas/Product'
+ *                 count:
+ *                   type: integer
+ *                 query:
+ *                   type: object
  *       502:
  *         description: Lỗi kết nối đến Product Service
  */
-// Forward GET /api/products/search -> product-service /phones/search
 app.get('/api/products/search', async (req, res) => {
     try {
         const resp = await axios.get(`${PRODUCT_SERVICE_URL}/phones/search`, {
@@ -140,35 +227,58 @@ app.get('/api/products', async (req, res) => {
  * /api/products/{id}:
  *   get:
  *     tags: [Products]
- *     summary: Lấy chi tiết một sản phẩm
- *     description: Trả về thông tin chi tiết của một sản phẩm dựa trên ID
+ *     summary: Lấy thông tin chi tiết của sản phẩm
+ *     description: |
+ *       Trả về thông tin chi tiết đầy đủ của một sản phẩm bao gồm:
+ *       - Mô tả chi tiết
+ *       - Thông tin bảo hành
+ *       - Màu sắc có sẵn
+ *       - Thông số kỹ thuật (screen, CPU, RAM, camera, battery, etc.)
  *     parameters:
  *       - in: path
  *         name: id
  *         required: true
  *         schema:
  *           type: string
- *         description: MongoDB ObjectId của sản phẩm
- *         example: 507f1f77bcf86cd799439011
+ *         description: MongoDB ObjectId của sản phẩm (24 ký tự hex)
+ *         example: 6923b627bd4162406bf43205
  *     responses:
  *       200:
  *         description: Lấy thông tin sản phẩm thành công
  *         content:
  *           application/json:
  *             schema:
- *               $ref: '#/components/schemas/Product'
+ *               $ref: '#/components/schemas/ProductDetail'
  *       400:
- *         description: ID không hợp lệ
+ *         description: ID không hợp lệ (không phải MongoDB ObjectId)
  *         content:
  *           application/json:
  *             schema:
- *               $ref: '#/components/schemas/Error'
+ *               type: object
+ *               properties:
+ *                 error:
+ *                   type: string
+ *                   example: Invalid id format
+ *                 message:
+ *                   type: string
+ *                   example: ID phải là MongoDB ObjectId hợp lệ
+ *                 requestId:
+ *                   type: string
  *       404:
  *         description: Không tìm thấy sản phẩm
  *         content:
  *           application/json:
  *             schema:
- *               $ref: '#/components/schemas/Error'
+ *               type: object
+ *               properties:
+ *                 error:
+ *                   type: string
+ *                   example: Not found
+ *                 message:
+ *                   type: string
+ *                   example: Không tìm thấy sản phẩm
+ *                 requestId:
+ *                   type: string
  *       502:
  *         description: Lỗi kết nối đến Product Service
  *         content:
@@ -607,6 +717,214 @@ app.put('/api/auth/profile', async (req, res) => {
         return res.status(resp.status).json(resp.data);
     } catch (err) {
         console.error('gateway error PUT /api/auth/profile', err.message || err);
+        const status = err.response?.status || 502;
+        return res.status(status).json(err.response?.data || { error: 'Bad gateway' });
+    }
+});
+
+// ========================================
+// CART APIs - Forward to Auth Service
+// ========================================
+
+/**
+ * @swagger
+ * /api/cart/add:
+ *   post:
+ *     tags: [Cart]
+ *     summary: Thêm sản phẩm vào giỏ hàng
+ *     description: Thêm một sản phẩm vào giỏ hàng của người dùng
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - user_id
+ *               - product_id
+ *               - quantity
+ *             properties:
+ *               user_id:
+ *                 type: string
+ *                 description: ID của người dùng
+ *                 example: "507f1f77bcf86cd799439011"
+ *               product_id:
+ *                 type: string
+ *                 description: ID của sản phẩm
+ *                 example: "6936297a701665210edbd101"
+ *               quantity:
+ *                 type: integer
+ *                 minimum: 1
+ *                 description: Số lượng sản phẩm
+ *                 example: 2
+ *     responses:
+ *       200:
+ *         description: Thêm vào giỏ hàng thành công
+ *       400:
+ *         description: Sản phẩm hết hàng hoặc dữ liệu không hợp lệ
+ *       404:
+ *         description: Người dùng hoặc sản phẩm không tồn tại
+ */
+app.post('/api/cart/add', async (req, res) => {
+    try {
+        const resp = await axios.post(`${AUTH_SERVICE_URL}/api/cart/add`, req.body, { timeout: 5000 });
+        return res.status(resp.status).json(resp.data);
+    } catch (err) {
+        console.error('gateway error /api/cart/add', err.message || err);
+        const status = err.response?.status || 502;
+        return res.status(status).json(err.response?.data || { error: 'Bad gateway' });
+    }
+});
+
+/**
+ * @swagger
+ * /api/cart/{user_id}:
+ *   get:
+ *     tags: [Cart]
+ *     summary: Xem giỏ hàng của người dùng
+ *     description: Lấy danh sách tất cả sản phẩm trong giỏ hàng của một người dùng
+ *     parameters:
+ *       - in: path
+ *         name: user_id
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: ID của người dùng
+ *         example: "507f1f77bcf86cd799439011"
+ *     responses:
+ *       200:
+ *         description: Lấy giỏ hàng thành công
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 status:
+ *                   type: string
+ *                   example: success
+ *                 user_id:
+ *                   type: string
+ *                 items:
+ *                   type: array
+ *                   items:
+ *                     type: object
+ *                     properties:
+ *                       product_id:
+ *                         type: string
+ *                       product_name:
+ *                         type: string
+ *                       price:
+ *                         type: number
+ *                       quantity:
+ *                         type: integer
+ *                       total:
+ *                         type: number
+ *                 cart_total:
+ *                   type: number
+ *       404:
+ *         description: Người dùng không tồn tại
+ */
+app.get('/api/cart/:user_id', async (req, res) => {
+    try {
+        const resp = await axios.get(`${AUTH_SERVICE_URL}/api/cart/${req.params.user_id}`, { timeout: 5000 });
+        return res.status(resp.status).json(resp.data);
+    } catch (err) {
+        console.error('gateway error /api/cart/:user_id', err.message || err);
+        const status = err.response?.status || 502;
+        return res.status(status).json(err.response?.data || { error: 'Bad gateway' });
+    }
+});
+
+/**
+ * @swagger
+ * /api/cart/update:
+ *   put:
+ *     tags: [Cart]
+ *     summary: Cập nhật số lượng sản phẩm trong giỏ
+ *     description: Cập nhật số lượng của một sản phẩm có trong giỏ hàng
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - user_id
+ *               - product_id
+ *               - quantity
+ *             properties:
+ *               user_id:
+ *                 type: string
+ *                 description: ID của người dùng
+ *                 example: "507f1f77bcf86cd799439011"
+ *               product_id:
+ *                 type: string
+ *                 description: ID của sản phẩm
+ *                 example: "6936297a701665210edbd101"
+ *               quantity:
+ *                 type: integer
+ *                 minimum: 0
+ *                 description: Số lượng mới (0 để xóa sản phẩm)
+ *                 example: 3
+ *     responses:
+ *       200:
+ *         description: Cập nhật thành công
+ *       400:
+ *         description: Không đủ hàng trong kho
+ *       404:
+ *         description: Sản phẩm không có trong giỏ hàng
+ */
+app.put('/api/cart/update', async (req, res) => {
+    try {
+        const resp = await axios.put(`${AUTH_SERVICE_URL}/api/cart/update`, req.body, { timeout: 5000 });
+        return res.status(resp.status).json(resp.data);
+    } catch (err) {
+        console.error('gateway error /api/cart/update', err.message || err);
+        const status = err.response?.status || 502;
+        return res.status(status).json(err.response?.data || { error: 'Bad gateway' });
+    }
+});
+
+/**
+ * @swagger
+ * /api/cart/delete:
+ *   delete:
+ *     tags: [Cart]
+ *     summary: Xóa sản phẩm khỏi giỏ hàng
+ *     description: Xóa một sản phẩm khỏi giỏ hàng của người dùng
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - user_id
+ *               - product_id
+ *             properties:
+ *               user_id:
+ *                 type: string
+ *                 description: ID của người dùng
+ *                 example: "507f1f77bcf86cd799439011"
+ *               product_id:
+ *                 type: string
+ *                 description: ID của sản phẩm cần xóa
+ *                 example: "6936297a701665210edbd101"
+ *     responses:
+ *       200:
+ *         description: Xóa thành công
+ *       404:
+ *         description: Không tìm thấy sản phẩm trong giỏ hàng
+ */
+app.delete('/api/cart/delete', async (req, res) => {
+    try {
+        const resp = await axios.delete(`${AUTH_SERVICE_URL}/api/cart/delete`, { 
+            data: req.body,
+            timeout: 5000 
+        });
+        return res.status(resp.status).json(resp.data);
+    } catch (err) {
+        console.error('gateway error /api/cart/delete', err.message || err);
         const status = err.response?.status || 502;
         return res.status(status).json(err.response?.data || { error: 'Bad gateway' });
     }

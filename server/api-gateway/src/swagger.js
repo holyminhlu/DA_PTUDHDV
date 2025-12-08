@@ -138,29 +138,111 @@ const options = {
               type: 'string',
               example: '507f1f77bcf86cd799439011'
             },
-            name: {
+            id: {
+              type: 'number',
+              example: 1
+            },
+            title: {
               type: 'string',
-              example: 'iPhone 15 Pro Max'
+              example: 'iPhone 15 Pro Max 256GB'
+            },
+            image: {
+              type: 'string',
+              example: '/img/articles/product-1.jpg'
             },
             price: {
               type: 'number',
               example: 29990000
             },
-            description: {
-              type: 'string',
-              example: 'Điện thoại iPhone 15 Pro Max 256GB'
+            oldPrice: {
+              type: 'number',
+              example: 34990000
             },
-            image: {
-              type: 'string',
-              example: '/img/products/iphone-15-pro-max.jpg'
+            rating: {
+              type: 'number',
+              example: 4.8
+            },
+            reviews: {
+              type: 'number',
+              example: 234
+            },
+            discount: {
+              type: 'number',
+              example: 14
             },
             category: {
               type: 'string',
               example: 'iPhone'
             },
-            stock: {
-              type: 'number',
-              example: 50
+            brand: {
+              type: 'string',
+              example: 'Apple'
+            }
+          }
+        },
+        ProductDetail: {
+          type: 'object',
+          properties: {
+            _id: {
+              type: 'string',
+              example: '6923b627bd4162406bf43205'
+            },
+            phoneId: {
+              type: 'string',
+              example: '1'
+            },
+            description: {
+              type: 'string',
+              example: 'iPhone 15 Pro Max 256GB sở hữu chip A17 Bionic mạnh mẽ, màn hình Super Retina XDR...'
+            },
+            warranty: {
+              type: 'string',
+              example: '12 tháng'
+            },
+            colors: {
+              type: 'string',
+              example: 'Silver'
+            },
+            specs: {
+              type: 'object',
+              properties: {
+                screen: {
+                  type: 'string',
+                  example: '6.7 inch Super Retina XDR'
+                },
+                cpu: {
+                  type: 'string',
+                  example: 'A17 Bionic'
+                },
+                ram: {
+                  type: 'string',
+                  example: '8GB'
+                },
+                storage: {
+                  type: 'string',
+                  example: '256GB'
+                },
+                camera: {
+                  type: 'string',
+                  example: '48MP + 12MP + 12MP'
+                },
+                battery: {
+                  type: 'string',
+                  example: '4323mAh'
+                },
+                os: {
+                  type: 'string',
+                  example: 'iOS 17'
+                },
+                connectivity: {
+                  type: 'string',
+                  example: '5G, Wi-Fi 6, Bluetooth 5.3'
+                },
+                weight: {
+                  type: 'string',
+                  example: '221g'
+                }
+              }
             }
           }
         },
@@ -232,6 +314,10 @@ const options = {
       {
         name: 'Products',
         description: 'API quản lý sản phẩm'
+      },
+      {
+        name: 'Cart',
+        description: 'API quản lý giỏ hàng'
       },
       {
         name: 'Health',

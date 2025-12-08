@@ -47,20 +47,90 @@ mongoose.connect(MONGO_URI, {
 // Routes
 app.get('/health', (req, res) => res.json({ status: 'ok', service: 'product-service' }));
 
-// GET /phones -> list all phones (paginate if needed)
+// GET /phones -> Danh sách tất cả sản phẩm (tối đa 100)
+// Trả về: Array of products với format chuẩn
 app.get('/phones', async (req, res) => {
     try {
+        console.log(`[${req.id}] GET /phones - Fetching all phones`);
         const phones = await Phone.find().limit(100).lean();
-        // Normalize id for frontend convenience (prefer _id, then id, then phoneId)
+        
+        // Map to standard format
         const mapped = phones.map(p => ({
-            ...p,
-            // Prefer an existing `id` (e.g., numeric id from sample data) or `phoneId` before falling back to MongoDB _id
-            id: (p.id !== undefined && p.id !== null) ? p.id : (p.phoneId !== undefined && p.phoneId !== null) ? p.phoneId : (p._id ? String(p._id) : null)
+            _id: p._id,
+            id: (p.id !== undefined && p.id !== null) ? p.id : (p.phoneId !== undefined && p.phoneId !== null) ? p.phoneId : String(p._id),
+            title: p.title || p.name || 'Unknown Product',
+            image: p.image || '/img/articles/product-default.jpg',
+            price: p.price || 0,
+            oldPrice: p.oldPrice || p.price || 0,
+            rating: p.rating || 0,
+            reviews: p.reviews || 0,
+            discount: p.discount || 0,
+            category: p.category || 'Uncategorized',
+            brand: p.brand || 'Unknown'
         }));
+        
+        console.log(`[${req.id}] Found ${mapped.length} phones`);
         res.json(mapped);
     } catch (err) {
-        console.error(err);
-        res.status(500).json({ error: 'Internal server error' });
+        console.error(`[${req.id}] Error fetching phones:`, err.message || err);
+        res.status(500).json({ 
+            error: 'Internal server error', 
+            requestId: req.id 
+        });
+    }
+});
+
+// GET /phones/featured -> Hiển thị các sản phẩm nổi bật
+// Trả về: Array of featured products (rating cao, discount lớn, hoặc được đánh dấu featured)
+app.get('/phones/featured', async (req, res) => {
+    try {
+        console.log(`[${req.id}] GET /phones/featured - Fetching featured phones`);
+        const limit = Number(req.query.limit) || 6;
+        
+        // Query sản phẩm nổi bật:
+        // 1. Có field isFeatured = true
+        // 2. Hoặc có rating >= 4.5
+        // 3. Hoặc có discount >= 10%
+        const phones = await Phone.find({
+            $or: [
+                { isFeatured: true },
+                { rating: { $gte: 4.5 } },
+                { discount: { $gte: 10 } }
+            ]
+        })
+        .sort({ rating: -1, discount: -1 }) // Ưu tiên rating cao và discount lớn
+        .limit(limit)
+        .lean();
+        
+        // Map to standard format
+        const mapped = phones.map(p => ({
+            _id: p._id,
+            id: (p.id !== undefined && p.id !== null) ? p.id : (p.phoneId !== undefined && p.phoneId !== null) ? p.phoneId : String(p._id),
+            title: p.title || p.name || 'Unknown Product',
+            image: p.image || '/img/articles/product-default.jpg',
+            price: p.price || 0,
+            oldPrice: p.oldPrice || p.price || 0,
+            rating: p.rating || 0,
+            reviews: p.reviews || 0,
+            discount: p.discount || 0,
+            category: p.category || 'Uncategorized',
+            brand: p.brand || 'Unknown',
+            isFeatured: true
+        }));
+        
+        console.log(`[${req.id}] Found ${mapped.length} featured phones`);
+        res.json({
+            results: mapped,
+            count: mapped.length,
+            type: 'featured'
+        });
+        
+    } catch (err) {
+        console.error(`[${req.id}] Error fetching featured phones:`, err.message || err);
+        res.status(500).json({ 
+            error: 'Internal server error', 
+            requestId: req.id 
+        });
     }
 });
 
@@ -162,36 +232,87 @@ const fetchPhoneByIdHandler = async (req, res) => {
 app.get('/phones/by-id/:id', fetchPhoneByIdHandler);
 app.get('/phonesby-id/:id', fetchPhoneByIdHandler);
 
-// GET /phones/:id
+// GET /phones/:id -> Chi tiết sản phẩm
+// Trả về: Thông tin chi tiết với phoneId, description, warranty, colors, specs
 app.get('/phones/:id', async (req, res) => {
     const { id } = req.params;
     const mongooseId = mongoose.Types.ObjectId;
+    
     try {
-        let phone = null;
-
-        // If the id looks like a Mongo ObjectId, try findById
-        if (mongooseId.isValid(id)) {
-            phone = await Phone.findById(id).lean();
+        console.log(`[${req.id}] GET /phones/${id} - Fetching phone details`);
+        
+        // Bước 5: Kiểm tra tính hợp lệ của ObjectId
+        if (!mongooseId.isValid(id)) {
+            console.log(`[${req.id}] Invalid ObjectId: ${id}`);
+            return res.status(400).json({ 
+                error: 'Invalid id format', 
+                message: 'ID phải là MongoDB ObjectId hợp lệ',
+                requestId: req.id 
+            });
         }
-
-        // If not found and id is numeric (or stored as `id` field in sample data), try that
+        
+        // Bước 6: Truy vấn MongoDB
+        let phone = await Phone.findById(id).lean();
+        
+        // Nếu không tìm thấy bằng _id, thử tìm bằng phoneId
         if (!phone) {
             const numeric = Number(id);
             if (!Number.isNaN(numeric)) {
-                phone = await Phone.findOne({ id: numeric }).lean();
+                phone = await Phone.findOne({ phoneId: numeric }).lean();
             }
         }
-
-        // If still not found, try matching `phoneId` (string) or string `id`
+        
+        // Nếu vẫn không tìm thấy, thử các trường khác
         if (!phone) {
-            phone = await Phone.findOne({ phoneId: id }).lean() || await Phone.findOne({ id: id }).lean();
+            phone = await Phone.findOne({ 
+                $or: [
+                    { phoneId: id },
+                    { id: id }
+                ]
+            }).lean();
         }
-
-        if (!phone) return res.status(404).json({ error: 'Not found', requestId: req.id });
-        res.json(phone);
+        
+        // Bước 7: Xử lý kết quả
+        if (!phone) {
+            console.log(`[${req.id}] Phone not found: ${id}`);
+            return res.status(404).json({ 
+                error: 'Not found', 
+                message: 'Không tìm thấy sản phẩm',
+                requestId: req.id 
+            });
+        }
+        
+        // Format response theo yêu cầu
+        const response = {
+            _id: phone._id,
+            phoneId: phone.phoneId || phone.id || String(phone._id),
+            description: phone.description || phone.desc || '',
+            warranty: phone.warranty || '12 tháng',
+            colors: phone.colors || phone.color || 'Standard',
+            specs: phone.specs || {
+                screen: phone.screen || 'N/A',
+                cpu: phone.cpu || phone.processor || 'N/A',
+                ram: phone.ram || 'N/A',
+                storage: phone.storage || phone.memory || 'N/A',
+                camera: phone.camera || 'N/A',
+                battery: phone.battery || 'N/A',
+                os: phone.os || phone.operatingSystem || 'N/A',
+                connectivity: phone.connectivity || '5G, Wi-Fi, Bluetooth',
+                weight: phone.weight || 'N/A'
+            }
+        };
+        
+        console.log(`[${req.id}] Phone found: ${response.phoneId}`);
+        res.json(response);
+        
     } catch (err) {
+        // Bước 8: Xử lý lỗi
         console.error(`[${req.id}] Error fetching phone ${id}:`, err.message || err);
-        res.status(500).json({ error: 'Internal server error', requestId: req.id });
+        res.status(500).json({ 
+            error: 'Internal server error',
+            message: 'Lỗi server khi lấy thông tin sản phẩm',
+            requestId: req.id 
+        });
     }
 });
 
