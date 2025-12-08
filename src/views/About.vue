@@ -170,27 +170,21 @@ const values = [
 
 const teamMembers = [
   {
-    name: 'Nguyễn Văn An',
-    role: 'Giám đốc điều hành',
-    avatar: 'NA',
-    description: 'Với hơn 15 năm kinh nghiệm trong ngành công nghệ, anh An đã dẫn dắt TechStore trở thành một trong những cửa hàng điện tử hàng đầu.'
-  },
-  {
-    name: 'Trần Thị Bình',
+    name: 'Hồ Lý Minh Lữ',
     role: 'Trưởng phòng Kinh doanh',
-    avatar: 'TB',
+    avatar: 'HL',
     description: 'Chuyên gia về sản phẩm công nghệ và quan hệ khách hàng, chị Bình luôn đảm bảo khách hàng nhận được sản phẩm tốt nhất.'
   },
   {
-    name: 'Lê Minh Cường',
+    name: 'Nguyễn Hữu Luân',
     role: 'Kỹ thuật viên trưởng',
-    avatar: 'LC',
+    avatar: 'HL',
     description: 'Với kiến thức sâu rộng về công nghệ, anh Cường đảm bảo mọi sản phẩm đều được kiểm tra kỹ lưỡng trước khi đến tay khách hàng.'
   },
   {
-    name: 'Phạm Thị Dung',
+    name: 'Trần Trung Phúc',
     role: 'Trưởng phòng Chăm sóc khách hàng',
-    avatar: 'PD',
+    avatar: 'TP',
     description: 'Luôn tận tâm với khách hàng, chị Dung đảm bảo mọi thắc mắc và yêu cầu của khách hàng đều được giải quyết nhanh chóng.'
   }
 ]
@@ -490,7 +484,8 @@ const teamMembers = [
 
 @media (min-width: 1024px) {
   .team-grid {
-    grid-template-columns: repeat(4, 1fr);
+    grid-template-columns: repeat(3, 1fr);
+    justify-items: center;
   }
 }
 
