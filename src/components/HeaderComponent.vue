@@ -38,20 +38,7 @@
 
       <!-- Search Bar -->
       <div class="search-container">
-        <div class="search-box">
-          <svg class="search-icon" width="16" height="16" viewBox="0 0 24 24" fill="none">
-            <path d="M21 21L16.514 16.506L21 21ZM19 10.5C19 15.194 15.194 19 10.5 19C5.806 19 2 15.194 2 10.5C2 5.806 5.806 2 10.5 2C15.194 2 19 5.806 19 10.5Z" 
-                  stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-          </svg>
-          <input 
-            v-model="searchQuery"
-            type="text" 
-            placeholder="Tìm kiếm..." 
-            class="search-input"
-            @focus="isSearchFocused = true"
-            @blur="isSearchFocused = false"
-          />
-        </div>
+        <SearchBar />
       </div>
 
       <!-- Action Buttons: only Cart then User (wishlist removed) -->
@@ -213,19 +200,22 @@
 </template>
 
 <script>
+import SearchBar from './SearchBar.vue';
+
 export default { 
   name: 'HeaderComponent',
+  components: {
+    SearchBar
+  },
   data() {
     return {
       isScrolled: false,
       isMobileMenuOpen: false,
-      isSearchFocused: false,
       isUserDropdownOpen: false,
       isCartDropdownOpen: false,
       isWishlistActive: false,
       isLoggedIn: false,
       user: null,
-      searchQuery: '',
       navItems: [
         { name: 'Trang chủ', path: '/' },
         { name: 'Sản phẩm', path: '/products', badge: 'Hot' },

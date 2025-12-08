@@ -13,6 +13,9 @@ export default new Router({
   mode: 'history',
   routes: [
     { path: '/', name: 'home', component: HomeView },
+    { path: '/products', name: 'Products', component: () => import('../views/Products.vue') },
+    { path: '/search', name: 'SearchResults', component: () => import('../views/SearchResults.vue') },
+    { path: '/product/:id', name: 'ProductDetail', component: () => import('../views/ProductDetail.vue') },
     { path: '/khuyenmai', name: 'khuyenmai', component: KhuyenMai },
     { path: '/dangky', name: 'dangky', component: SignUp },
     { path: '/dangnhap', name: 'dangnhap', component: SignIn },

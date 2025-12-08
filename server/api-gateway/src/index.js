@@ -57,6 +57,47 @@ app.get('/health', (req, res) => res.json({ status: 'gateway ok' }));
 
 /**
  * @swagger
+ * /api/products/search:
+ *   get:
+ *     tags: [Products]
+ *     summary: Tìm kiếm sản phẩm
+ *     description: Tìm kiếm điện thoại theo các tiêu chí
+ *     parameters:
+ *       - in: query
+ *         name: q
+ *         schema:
+ *           type: string
+ *         description: Từ khóa tìm kiếm
+ *     responses:
+ *       200:
+ *         description: Tìm kiếm thành công
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: array
+ *               items:
+ *                 $ref: '#/components/schemas/Product'
+ *       502:
+ *         description: Lỗi kết nối đến Product Service
+ */
+// Forward GET /api/products/search -> product-service /phones/search
+app.get('/api/products/search', async (req, res) => {
+    try {
+        const resp = await axios.get(`${PRODUCT_SERVICE_URL}/phones/search`, {
+            params: req.query,
+            timeout: 5000,
+            headers: { 'x-request-id': req.id }
+        });
+        res.json(resp.data);
+    } catch (err) {
+        console.error(`[${req.id}] gateway error /api/products/search:`, err.message || err);
+        const status = err.response?.status || 502;
+        res.status(status).json({ error: 'Bad gateway', requestId: req.id });
+    }
+});
+
+/**
+ * @swagger
  * /api/products:
  *   get:
  *     tags: [Products]
@@ -150,7 +191,151 @@ app.get('/api/products/:id', async (req, res) => {
     }
 });
 
+/**
+ * @swagger
+ * /api/productinfo/{id}:
+ *   get:
+ *     tags: [Products]
+ *     summary: Lấy thông tin chi tiết sản phẩm
+ *     description: Endpoint thay thế để lấy thông tin sản phẩm
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: ID của sản phẩm
+ *     responses:
+ *       200:
+ *         description: Thành công
+ *       502:
+ *         description: Lỗi gateway
+ */
+// Forward GET /api/productinfo/:id -> product-service /phoneinfo/:id
+app.get('/api/productinfo/:id', async (req, res) => {
+    try {
+        const resp = await axios.get(`${PRODUCT_SERVICE_URL}/phoneinfo/${req.params.id}`, { 
+            timeout: 5000,
+            headers: { 'x-request-id': req.id }
+        });
+        res.json(resp.data);
+    } catch (err) {
+        console.error(`[${req.id}] gateway error /api/productinfo/:id:`, err.message || err);
+        const status = err.response?.status || 502;
+        res.status(status).json({ error: 'Bad gateway', requestId: req.id });
+    }
+});
 
+/**
+ * @swagger
+ * /api/phoneinfo/{id}:
+ *   get:
+ *     tags: [Products]
+ *     summary: Lấy thông tin phone
+ *     description: Endpoint để lấy thông tin điện thoại
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *     responses:
+ *       200:
+ *         description: Thành công
+ *       502:
+ *         description: Lỗi gateway
+ */
+// Forward GET /api/phoneinfo/:id -> product-service /phoneinfo/:id
+app.get('/api/phoneinfo/:id', async (req, res) => {
+    try {
+        const resp = await axios.get(`${PRODUCT_SERVICE_URL}/phoneinfo/${req.params.id}`, {
+            timeout: 5000,
+            headers: { 'x-request-id': req.id }
+        });
+        res.json(resp.data);
+    } catch (err) {
+        console.error(`[${req.id}] gateway error /api/phoneinfo/:id:`, err.message || err);
+        const status = err.response?.status || 502;
+        res.status(status).json({ error: 'Bad gateway', requestId: req.id });
+    }
+});
+
+/**
+ * @swagger
+ * /api/phones/by-id/{id}:
+ *   get:
+ *     tags: [Products]
+ *     summary: Lấy phone theo ID
+ *     description: Lấy thông tin điện thoại theo ID cụ thể
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *     responses:
+ *       200:
+ *         description: Thành công
+ *       404:
+ *         description: Không tìm thấy
+ *       502:
+ *         description: Lỗi gateway
+ */
+// Forward GET /api/phones/by-id/:id -> product-service /phones/by-id/:id
+app.get('/api/phones/by-id/:id', async (req, res) => {
+    try {
+        const target = `${PRODUCT_SERVICE_URL}/phones/by-id/${req.params.id}`;
+        console.log(`[${req.id}] gateway forward ${req.path} -> ${target}`);
+        const resp = await axios.get(target, {
+            timeout: 5000,
+            headers: { 'x-request-id': req.id }
+        });
+        res.json(resp.data);
+    } catch (err) {
+        console.error(`[${req.id}] gateway error /api/phones/by-id/:id:`, err.message || err);
+        const status = err.response?.status || 502;
+        // forward 404 from product-service as-is
+        if (err.response && err.response.status === 404) return res.status(404).json(err.response.data);
+        res.status(status).json({ error: 'Bad gateway', requestId: req.id });
+    }
+});
+
+/**
+ * @swagger
+ * /api/phonesby-id/{id}:
+ *   get:
+ *     tags: [Products]
+ *     summary: Lấy phone theo ID (compact route)
+ *     description: Alternative route cho phones/by-id
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *     responses:
+ *       200:
+ *         description: Thành công
+ *       404:
+ *         description: Không tìm thấy
+ */
+// Accept a common typo/compact route `/api/phonesby-id/:id` for convenience
+app.get('/api/phonesby-id/:id', async (req, res) => {
+    try {
+        const target = `${PRODUCT_SERVICE_URL}/phones/by-id/${req.params.id}`;
+        console.log(`[${req.id}] gateway forward ${req.path} -> ${target}`);
+        const resp = await axios.get(target, {
+            timeout: 5000,
+            headers: { 'x-request-id': req.id }
+        });
+        res.json(resp.data);
+    } catch (err) {
+        console.error(`[${req.id}] gateway error /api/phonesby-id/:id:`, err.message || err);
+        const status = err.response?.status || 502;
+        if (err.response && err.response.status === 404) return res.status(404).json(err.response.data);
+        res.status(status).json({ error: 'Bad gateway', requestId: req.id });
+    }
+});
 
 /**
  * @swagger
